@@ -556,7 +556,6 @@ $(function() {
           })
           uName = this;
           awmSubmit(paramUrl, uName)
-
         }
       }
     })
