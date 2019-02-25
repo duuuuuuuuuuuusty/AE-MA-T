@@ -260,24 +260,7 @@ $(function() {
               $(this).addClass('aw-deleted').removeClass('aw-marked-for-deletion')
             });
           });
-
-          // Mass award upload functionality
-          $('#aw-upload-selected').click(function() {
-            console.log('Submitting awards..')
-            $.each($('.aw-marked-for-upload'), function() {
-              submitter(this)
-            });
-          })
-          $('#aw-discard-changes').click(function() {
-            $('.aw-controls-cancel').trigger('click')
-          })
-          //Individual award upload functionality
-
-          $(document).on('click', '.aw-controls-confirm', function() {
-            submitter($(this).parents('tr').eq(0))
-          })
-
-          function submitter(elem) {
+		   function submitter(elem) {
             let target = $(elem);
             var thisId = target.find('.cell-ID').val(),
               thisUser = inverseUserMap[target.find('.cell-user').val()] + '', // Get the user ID from the field name
@@ -298,7 +281,6 @@ $(function() {
               description: thisDesc,
               display: thisVisibility
             })
-
 
             fetch(paramUrl)
               .then(handleErrors)
@@ -325,24 +307,56 @@ $(function() {
             $(elem).removeClass('aw-marked-for-upload')
             $(elem).find('.aw-controls-wrap').remove()
           }
+
+          // Mass award upload functionality
+          $('#aw-upload-selected').click(function() {
+            console.log('Submitting awards..')
+            $.each($('.aw-marked-for-upload'), function() {
+              submitter(this)
+            });
+          })
+          $('#aw-discard-changes').click(function() {
+            $('.aw-controls-cancel').trigger('click')
+          })
+          //Individual award upload functionality
+
+          $(document).on('click', '.aw-controls-confirm', function() {
+            submitter($(this).parents('tr').eq(0))
+          })
         })
     })
   })
 
   //Handle the multi-award side of things
 
-
-  // Reset functionality
-  $('#aw-m-reset').click(function() {
-    resetAWForm()
-  })
-
+  
   function resetAWForm() {
     $('#aw-m-t-dumpzone img').trigger('click')
     $('#aw-m-create-wrap input, #aw-m-create-wrap textarea').val('')
     $('#aw-m-create-wrap input, #aw-m-create-wrap span').show()
     awCon.textContent = 'Fields cleared\n' + awCon.textContent
   }
+
+  // Reset functionality
+  $('#aw-m-reset').click(function() {
+    resetAWForm()
+  })
+  
+  function updateFields(awardInfo) {
+    var dataObj = JSON.parse(awardInfo)
+    $('#aw-m-cell-name').val(dataObj['name'])
+    $('#aw-m-cell-img').val(dataObj['img'])
+    $('#aw-m-cell-issuer').val(dataObj['issuer'])
+    $('#aw-m-cell-desc').val(dataObj['desc'])
+    if (dataObj['visible'] === '1') {
+      document.getElementById('aw-m-cell-visible').checked = true
+      $('#aw-m-cell-visible').val('1')
+    } else {
+      document.getElementById('aw-m-cell-visible').checked = false
+      $('#aw-m-cell-visible').val('0')
+    }
+  }
+
   // Saved award transfer functionality
   $(document).on('click', '#aw-m-template-container .aw-s-img', function() {
     let clone = $(this).clone()
@@ -360,21 +374,6 @@ $(function() {
     }
   })
 
-  function updateFields(awardInfo) {
-    var dataObj = JSON.parse(awardInfo)
-    $('#aw-m-cell-name').val(dataObj['name'])
-    $('#aw-m-cell-img').val(dataObj['img'])
-    $('#aw-m-cell-issuer').val(dataObj['issuer'])
-    $('#aw-m-cell-desc').val(dataObj['desc'])
-    if (dataObj['visible'] === '1') {
-      document.getElementById('aw-m-cell-visible').checked = true
-      $('#aw-m-cell-visible').val('1')
-    } else {
-      document.getElementById('aw-m-cell-visible').checked = false
-      $('#aw-m-cell-visible').val('0')
-    }
-  }
-
   $(document).on('click', '#aw-m-t-dumpzone img', function() {
     $('#aw-m-template-container .aw-s-img[tid="' + $(this).attr('tid') + '"]').toggleClass('aw-selected')
     $(this).remove();
@@ -385,17 +384,7 @@ $(function() {
       updateFields(tt)
     }
   })
-
-
-  $('#aw-m-save').click(function() {
-    let newAward = {};
-    $('#aw-m-create-wrap input').each(function() {
-      newAward[$(this).attr('m-type')] = $(this).val()
-    })
-    $('#aw-m-template-container').append(create(newAward))
-
-  })
-
+  
   function create(newAward) {
     return $('<img>').attr({
       'src': newAward['img'],
@@ -406,6 +395,16 @@ $(function() {
       'm-info': JSON.stringify(newAward)
     })
   }
+
+  $('#aw-m-save').click(function() {
+    let newAward = {};
+    $('#aw-m-create-wrap input').each(function() {
+      newAward[$(this).attr('m-type')] = $(this).val()
+    })
+    $('#aw-m-template-container').append(create(newAward))
+
+  })
+
   $('#aw-m-template-load').click(function() {
     if (confirm('This will overwrite all currently loaded templates')) {
 
@@ -502,6 +501,25 @@ $(function() {
 
   $('#aw-m-submit').click(function() {
     var users = $('#aw-m-cell-user').val().split(/\n/g);
+	
+  function awmSubmit(paramUrl, uName) {
+    fetch(paramUrl, uName)
+      .then(handleErrors)
+      .then(response => response.text())
+      .then(text => {
+        let parser = new DOMParser();
+        let res = parser.parseFromString(text, 'text/html');
+        if ($(res).find('.tdrow1').text().trim() === 'Please fill out the form completely.') {
+          awCon.textContent = 'Submission failed (' + uName + ') - Please fill out the form completely\n' + awCon.textContent
+        } else if ($(res).find('#description')) {
+          awCon.textContent = '(' + uName + ') - The action was executed successfully\n' + awCon.textContent
+        }
+      })
+      .catch(function(e) {
+        console.log(e)
+        awCon.textContent = 'A connection error has occurred: Please see the console for details\n' + awCon.textContent
+      })
+  }
 
     $.each(users, function() { //woulda rather use a for loop, but it was having trouble keeping track of iterations
       if ($('#aw-m-submit').attr('aw-type') === 'regular') {
@@ -543,23 +561,4 @@ $(function() {
       }
     })
   })
-
-  function awmSubmit(paramUrl, uName) {
-    fetch(paramUrl, uName)
-      .then(handleErrors)
-      .then(response => response.text())
-      .then(text => {
-        let parser = new DOMParser();
-        let res = parser.parseFromString(text, 'text/html');
-        if ($(res).find('.tdrow1').text().trim() === 'Please fill out the form completely.') {
-          awCon.textContent = 'Submission failed (' + uName + ') - Please fill out the form completely\n' + awCon.textContent
-        } else if ($(res).find('#description')) {
-          awCon.textContent = '(' + uName + ') - The action was executed successfully\n' + awCon.textContent
-        }
-      })
-      .catch(function(e) {
-        console.log(e)
-        awCon.textContent = 'A connection error has occurred: Please see the console for details\n' + awCon.textContent
-      })
-  }
 })
