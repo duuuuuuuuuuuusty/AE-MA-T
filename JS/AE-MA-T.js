@@ -28,7 +28,7 @@ $(function() {
   })
   $('#aw-login').click(function() {
     fetch("/admin.php?login=yes&username=" + $('#aw-login-usn').val() + "&password=" + $('#aw-login-pw').val()).then(function(response) {
-      if (((response.url).substring((response.url).indexOf('adsess=') + 7)).length === 32) {
+      if (((response.url).substring((response.url).indexOf('adsess=') + 7)).length > 0) {
         token = (response.url).substring((response.url).indexOf('adsess=') + 7)
         response.text().then(function(data) {
           let a = $(data).filter('title').text();
@@ -97,7 +97,7 @@ $(function() {
                 arr[i] = arr[i].slice(1, -1) // These strings will still have the quotation marks from the table
               }
               console.log('Post-process: ', arr);
-              awCon.textContent = 'Award #' + arr[0] + ' contains one or more un-escaped commas (&#44;) in its data. This may cause instability.\n' + awCon.textContent
+              awCon.textContent = 'Award #' + arr[0] + ' contains one or more un-escaped commas (,) in its data. This may cause instability.\n' + awCon.textContent
             }
 
             aObj.ID = arr[0],
@@ -556,6 +556,7 @@ $(function() {
           })
           uName = this;
           awmSubmit(paramUrl, uName)
+
         }
       }
     })
