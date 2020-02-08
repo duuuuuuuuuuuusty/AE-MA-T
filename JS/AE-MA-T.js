@@ -32,7 +32,7 @@ $(function() {
         token = (response.url).substring((response.url).indexOf('adsess=') + 7)
         response.text().then(function(data) {
           let a = $(data).filter('title').text();
-          fName = a.substring(0, a.indexOf('->')).trim().toLowerCase()
+          fName = a.substring(0, a.indexOf('->')).replace(/\s/g,'').toLowerCase();
         });
         awCon.textContent = 'ACP Token Found\n' + awCon.textContent
         $('#aw-ae-build-table').css('display', 'unset')
