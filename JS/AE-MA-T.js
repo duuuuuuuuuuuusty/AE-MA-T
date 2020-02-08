@@ -22,13 +22,13 @@ $(function() {
     return new Promise(resolve => setTimeout(resolve, milliseconds))
   }
   const awCon = document.getElementById('aw-console')
-  
+
   $('.aw-label.awe').click(function() {
     refreshRow()
   })
   $('#aw-login').click(function() {
     fetch("/admin.php?login=yes&username=" + $('#aw-login-usn').val() + "&password=" + $('#aw-login-pw').val()).then(function(response) {
-      if (((response.url).substring((response.url).indexOf('adsess=') + 7)).length > 0) {
+      if((response.url).indexOf('adsess') != -1 && (response.url).substring((response.url).indexOf('adsess=')+7).length>0) {
         token = (response.url).substring((response.url).indexOf('adsess=') + 7)
         response.text().then(function(data) {
           let a = $(data).filter('title').text();
@@ -329,7 +329,7 @@ $(function() {
 
   //Handle the multi-award side of things
 
-  
+
   function resetAWForm() {
     $('#aw-m-t-dumpzone img').trigger('click')
     $('#aw-m-create-wrap input, #aw-m-create-wrap textarea').val('')
@@ -341,7 +341,7 @@ $(function() {
   $('#aw-m-reset').click(function() {
     resetAWForm()
   })
-  
+
   function updateFields(awardInfo) {
     var dataObj = JSON.parse(awardInfo)
     $('#aw-m-cell-name').val(dataObj['name'])
@@ -384,7 +384,7 @@ $(function() {
       updateFields(tt)
     }
   })
-  
+
   function create(newAward) {
     return $('<img>').attr({
       'src': newAward['img'],
@@ -501,7 +501,7 @@ $(function() {
 
   $('#aw-m-submit').click(function() {
     var users = $('#aw-m-cell-user').val().split(/\n/g);
-	
+
   function awmSubmit(paramUrl, uName) {
     fetch(paramUrl, uName)
       .then(handleErrors)
