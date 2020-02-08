@@ -27,7 +27,7 @@ $(function() {
     refreshRow()
   })
   $('#aw-login').click(function() {
-    fetch("/admin.php?login=yes&username=" + $('#aw-login-usn').val() + "&password=" + $('#aw-login-pw').val()).then(function(response) {
+    fetch("/admin.php?login=yes&username=" + encodeURIComponent($('#aw-login-usn').val()) + "&password=" + encodeURIComponent($('#aw-login-pw').val())).then(function(response) {
       if((response.url).indexOf('adsess') != -1 && (response.url).substring((response.url).indexOf('adsess=')+7).length>0) {
         token = (response.url).substring((response.url).indexOf('adsess=') + 7)
         response.text().then(function(data) {
